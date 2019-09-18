@@ -1,0 +1,109 @@
+// A SLiM 3.3 config script for a neutral simulation using 
+// values true for sticklebacks
+initialize() {
+    //---------------//
+	// Mutation Rate //
+	//---------------//        
+	// set the per-site per-generation mutation rate to 1.4812e-08 
+        initializeMutationRate(1.4812e-08);
+                
+	//------------------//
+	// Mutation Type(s) //
+	//------------------//        
+	// Initialize the mutation type.
+	// The following function has 4 bits of information
+	// (name, dominance coefficient, "f" is for fixed fitness effect, and distribution of fitness effect)
+	// The below example is the neutral evolution example in the cookbook. 
+        initializeMutationType("m1", 0.5, "f", 0.0);
+
+	//-------------------------//
+	// Genomic Element Type(s) //
+	//-------------------------//
+	// Initialize the genomic element type. We're just going to simulate
+	// the autosome, so only one genomic element types is necessary.
+		// g1 genomic element type: uses m1 for all mutations
+        initializeGenomicElementType("g1", m1, 1.0);
+        
+	//-----------------//
+	// Genomic Element //
+	//-----------------//        
+    // Initialize the genomic element.  Here we specify the length of each 
+	// genomic region to simulate.  Note that, in Edios, arrays start
+	// at position 0. Hence why all values are true sizes -1. 
+		// uniform chromosomes of the length of real stickleback LGs (gasAcu1.0) 
+    // A chromosome made up of 1Mb non-overlapping regions
+    initializeGenomicElement(g1, 0, 999999);
+		initializeGenomicElement(g1, 1000000, 1999998);
+		initializeGenomicElement(g1, 1999999, 2999997);
+		initializeGenomicElement(g1, 2999998, 3999996);
+		initializeGenomicElement(g1, 3999997, 4999995);
+		initializeGenomicElement(g1, 4999996, 5999994);
+		initializeGenomicElement(g1, 5999995, 6999993);
+		initializeGenomicElement(g1, 6999994, 7999992);
+		initializeGenomicElement(g1, 7999993, 8999991);
+		initializeGenomicElement(g1, 8999992, 9999990);
+		initializeGenomicElement(g1, 9999991, 10999989);
+		initializeGenomicElement(g1, 10999990, 11999988);
+		initializeGenomicElement(g1, 11999989, 12999987);
+		initializeGenomicElement(g1, 12999988, 13999986);
+		initializeGenomicElement(g1, 13999987, 14999985);
+		initializeGenomicElement(g1, 14999986, 15999984);
+		initializeGenomicElement(g1, 15999985, 16999983);
+		initializeGenomicElement(g1, 16999984, 17999982);
+		initializeGenomicElement(g1, 17999983, 18999981);
+		initializeGenomicElement(g1, 18999982, 19999980);
+		initializeGenomicElement(g1, 19999981, 20999979);
+		initializeGenomicElement(g1, 20999980, 21999978);
+		initializeGenomicElement(g1, 21999979, 22999977);
+		initializeGenomicElement(g1, 22999978, 23999976);
+
+	//--------------------//
+	// Ancestral Sequence //    NOT USED HERE
+	//--------------------//
+	// Defining that this is nucleotide based, and defining a constant that is the length of the above chromosome
+	// then creating a random sequence od nucleotides that will act as the ancestral state.
+	//initializeSLiMOptions(nucleotideBased=T);
+	//defineConstant("L", 2399976);
+	//initializeAncestralNucleotides(randomNucleotides(L));
+        
+	//--------------------//
+	// Recombination Rate //
+	//--------------------//        
+    //set the recombination rate from Roesti et al. 2013 of 3.11cM/Mb, which is 3.11e10-8 per base per generation
+        initializeRecombinationRate(3.11e-8);
+
+    //--------------------//
+	// 	 Separate Sexes   //
+	//--------------------// 
+	// Setting the system so there are discreet sexes, but telling the simulation that the region under simulation
+	// is part of the autosome
+        initializeSex("A");
+}
+// From the start of generation 1 add the populations
+1 early() { 
+	// Saving the simulation seed in case we want to replicate this exact simulation
+	defineConstant("simID", getSeed());
+	// Creating two subpopulations that are connected through migration
+	// though migration from p1 -> p2 is 20x as strong as the other direction
+  // Ne was taken from Feulner et al. 2015 PLoS Gen. 
+  // Migration rates were estimated by rearranging the formula Fst=1/(4Nm+1) to Nm=(1/Fst)/4
+  // Then rates were calculated by dividing Nm/Ne for each population. 
+	sim.addSubpop("p0", 22032);
+	sim.addSubpop("p1", 25081);
+	sim.subpopulations[0].setMigrationRates(1, 0.00004068);
+	sim.subpopulations[1].setMigrationRates(0, 0.00003573);
+}
+// At the end of the 5000th generation, save the simulation, and sample 6 individuals
+// from each population.
+// The last line ends the simulation. 
+4999 late() {
+	p0.setSubpopulationSize(6);
+	p1.setSubpopulationSize(6);
+}
+5000 late() {
+	//p0.setSubpopulationSize(6);
+	//p1.setSubpopulationSize(6);
+	sim.outputFull("./simulation/SLiM_" + simID + "_simplified_migration_24M.txt");
+	//sim.outputFixedMutations("./simulation/SLiM_" + simID + ".txt");
+	sim.simulationFinished();
+}
